@@ -376,10 +376,8 @@
       getDatabase,
       ref,
       push,
-      onValue,
       set,
-      get,
-      child,
+      onValue,
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -403,12 +401,10 @@
       mobileMenu.classList.toggle("hidden");
     });
 
-    // Data structures
     let orderData = {}; // retailSKU -> {orderKey, scVariance, qty, dropID}
     let scannedData = {}; // retailSKU -> scannedQty
     let inspectedByData = {}; // retailSKU -> inspectorName
 
-    // DOM elements
     const uploadForm = document.getElementById("upload-form");
     const fileInput = document.getElementById("file-input");
     const uploadMessage = document.getElementById("upload-message");
@@ -432,7 +428,6 @@
     const displayScannedQty = document.getElementById("display-scannedQty");
     const exportExcelBtn = document.getElementById("export-excel");
 
-    // Utility functions
     function normalizeHeader(header) {
       return header.toString().trim().toLowerCase();
     }
@@ -523,7 +518,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Save scanned data to Firebase under "scanned" node keyed by retailSKU
     async function saveScanToFirebase(retailSKU, scannedQty, inspectorName) {
       try {
         const scanRef = ref(db, `scanned/${retailSKU}`);
@@ -538,7 +532,6 @@
       }
     }
 
-    // Load scanned data from Firebase and update scannedData object
     function loadScannedDataFromFirebase() {
       const scannedRef = ref(db, "scanned");
       onValue(scannedRef, (snapshot) => {
@@ -557,7 +550,6 @@
       });
     }
 
-    // Reset scanned data both locally and in Firebase
     async function resetScans() {
       scannedData = {};
       inspectedByData = {};
@@ -772,6 +764,7 @@
 
       const retailSKU = retailSKUInput.value.trim();
       const inspectorName = inspectedByInput.value.trim();
+      const filterDropId = dropIdFilterInput.value.trim().toLowerCase();
 
       if (!retailSKU) {
         alert("Please enter or scan an Item Code (Retail SKU).");
@@ -783,6 +776,17 @@
         retailSKUInput.focus();
         updateCurrentQtyDisplay(null);
         return;
+      }
+
+      // Check if filterDropId is set and matches the item's dropID
+      if (filterDropId) {
+        const itemDropID = (orderData[retailSKU].dropID || "").toLowerCase();
+        if (!itemDropID.includes(filterDropId)) {
+          alert(`Error: This item (Retail SKU: "${retailSKU}") is not part of the filtered Drop ID "${filterDropId}".`);
+          scanForm.reset();
+          retailSKUInput.focus();
+          return;
+        }
       }
 
       const order = orderData[retailSKU];
@@ -852,12 +856,10 @@
       updateSummaryTable();
     });
 
-    // Load scanned data on page load
     window.addEventListener("load", () => {
       loadScannedDataFromFirebase();
     });
 
-    // Export scanned data to Excel
     exportExcelBtn.addEventListener("click", () => {
       const exportData = [];
       const retailSKUs = Object.keys(orderData);
