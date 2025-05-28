@@ -1,0 +1,894 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>QC and Quantity Matching System - Scan &amp; Track</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background: #f9fafb;
+    }
+    /* Scrollbar for summary table */
+    #summary-table-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="bg-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-4">
+        <div class="flex items-center space-x-3">
+          <img
+            alt="Logo with letters QC in blue and white background"
+            class="h-12 w-12"
+            height="48"
+            src="https://storage.googleapis.com/a1aa/image/f39be134-8d4f-4438-8a1e-a01fe444f425.jpg"
+            width="48"
+          />
+          <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+            QC &amp; Quantity Matching System
+          </h1>
+        </div>
+        <nav class="hidden md:flex space-x-8 text-gray-700 font-semibold text-lg">
+          <a class="hover:text-blue-600 transition" href="#">Dashboard</a>
+          <a class="hover:text-blue-600 transition" href="#">Upload</a>
+          <a class="hover:text-blue-600 transition" href="#">Scan</a>
+          <a class="hover:text-blue-600 transition" href="#">Reports</a>
+          <a class="hover:text-blue-600 transition" href="#">Settings</a>
+        </nav>
+        <div class="md:hidden">
+          <button
+            aria-label="Open menu"
+            class="text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            id="mobile-menu-button"
+          >
+            <i class="fas fa-bars fa-lg"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="hidden md:hidden bg-white border-t border-gray-200" id="mobile-menu">
+      <a class="block px-4 py-3 text-gray-700 hover:bg-gray-100" href="#"
+        >Dashboard</a
+      >
+      <a class="block px-4 py-3 text-gray-700 hover:bg-gray-100" href="#"
+        >Upload</a
+      >
+      <a class="block px-4 py-3 text-gray-700 hover:bg-gray-100" href="#">Scan</a>
+      <a class="block px-4 py-3 text-gray-700 hover:bg-gray-100" href="#"
+        >Reports</a
+      >
+      <a class="block px-4 py-3 text-gray-700 hover:bg-gray-100" href="#"
+        >Settings</a
+      >
+    </nav>
+  </header>
+
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row md:space-x-10">
+    <!-- Left panel: Scan & Summary -->
+    <section class="flex-grow max-w-4xl mx-auto md:mx-0 bg-white rounded-lg shadow-lg p-8">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center space-x-3">
+        <i class="fas fa-barcode text-blue-600"></i>
+        <span>Scan Item Code &amp; Track Quantities</span>
+      </h2>
+
+      <!-- Filter by Drop ID -->
+      <div class="mb-6 max-w-md flex items-center space-x-3">
+        <div class="flex-grow">
+          <label for="dropid-filter" class="block text-sm font-medium text-gray-700 mb-2">Filter by Drop ID</label>
+          <input
+            type="text"
+            id="dropid-filter"
+            placeholder="Type Drop ID to filter scanned items summary"
+            class="block w-full rounded-md border border-gray-300 px-3 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono"
+            autocomplete="off"
+            aria-describedby="dropid-filter-help"
+          />
+          <p id="dropid-filter-help" class="text-xs text-gray-500 mt-1">
+            Filter scanned items summary table by Drop ID.
+          </p>
+        </div>
+        <button
+          id="export-excel"
+          class="mt-6 inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition"
+          aria-label="Export scanned data to Excel"
+          title="Export scanned data to Excel"
+          type="button"
+        >
+          <i class="fas fa-file-excel mr-2"></i> Export Excel
+        </button>
+      </div>
+
+      <!-- Display scanned and order qty for current item code -->
+      <div id="current-qty-display" class="mb-6 p-4 bg-blue-50 border border-blue-300 rounded-md max-w-md hidden" aria-live="polite" aria-atomic="true">
+        <p class="text-lg font-semibold text-blue-800">
+          <span id="display-retailSKU" class="font-mono"></span>
+        </p>
+        <p class="mt-1 text-blue-700">
+          Order Quantity: <span id="display-orderQty" class="font-semibold"></span> &nbsp;&nbsp;|&nbsp;&nbsp;
+          Scanned Quantity: <span id="display-scannedQty" class="font-semibold"></span>
+        </p>
+      </div>
+
+      <form
+        class="space-y-6 max-w-md"
+        id="scan-form"
+        autocomplete="off"
+        aria-label="Scan item code form"
+      >
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 mb-2"
+            for="retailsku-input"
+            >Enter or Scan Item Code (Retail SKU)</label
+          >
+          <input
+            autocomplete="off"
+            class="block w-full rounded-md border border-gray-300 px-3 py-3 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            id="retailsku-input"
+            placeholder="Scan or type item code here"
+            required
+            type="text"
+            autofocus
+            aria-describedby="retailsku-help"
+          />
+          <p id="retailsku-help" class="text-xs text-gray-500 mt-1">
+            Item Code must match uploaded order data.
+          </p>
+        </div>
+
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 mb-2"
+            for="inspected-by-input"
+            >Inspected By</label
+          >
+          <input
+            autocomplete="off"
+            class="block w-full rounded-md border border-gray-300 px-3 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            id="inspected-by-input"
+            placeholder="Enter inspector's name"
+            type="text"
+            aria-describedby="inspected-by-help"
+          />
+          <p id="inspected-by-help" class="text-xs text-gray-500 mt-1">
+            Optional: Name of the person inspecting this scan.
+          </p>
+        </div>
+
+        <div class="flex justify-between items-center max-w-md">
+          <button
+            class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1 transition"
+            type="submit"
+            aria-label="Add scanned item code"
+          >
+            <i class="fas fa-check mr-2"></i> Add Scan
+          </button>
+          <button
+            type="button"
+            id="reset-scans"
+            class="inline-flex items-center px-6 py-3 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 transition"
+            aria-label="Reset all scanned data"
+          >
+            <i class="fas fa-undo mr-2"></i> Reset Scans
+          </button>
+        </div>
+      </form>
+
+      <div
+        id="msg-box"
+        class="mt-6 p-4 rounded-lg max-w-md hidden"
+        role="alert"
+        aria-live="assertive"
+      ></div>
+
+      <div
+        id="summary-table-container"
+        class="mt-8 overflow-auto border border-gray-200 rounded-lg shadow-inner"
+        tabindex="0"
+        aria-label="Scanned items summary table container"
+      >
+        <h3 class="text-xl font-semibold mb-4 px-6 pt-6 text-gray-900">
+          Scanned Items Summary
+        </h3>
+        <table
+          class="min-w-full divide-y divide-gray-200 text-sm"
+          id="summary-table"
+          role="table"
+          aria-describedby="summary-desc"
+        >
+          <caption id="summary-desc" class="sr-only">
+            Table showing retail SKU, order key, SC variance, quantity, scanned quantity, and drop ID.
+          </caption>
+          <thead class="bg-gray-100 sticky top-0 z-10">
+            <tr>
+              <th
+                class="px-4 py-3 text-left font-medium text-gray-700 sticky left-0 bg-gray-100 z-20"
+                scope="col"
+                style="min-width: 140px;"
+              >
+                Retail SKU (Item Code)
+              </th>
+              <th
+                class="px-4 py-3 text-left font-medium text-gray-700"
+                scope="col"
+                style="min-width: 140px;"
+              >
+                Order Key
+              </th>
+              <th
+                class="px-4 py-3 text-right font-medium text-gray-700"
+                scope="col"
+                style="min-width: 90px;"
+              >
+                SCVariance
+              </th>
+              <th
+                class="px-4 py-3 text-right font-medium text-gray-700"
+                scope="col"
+                style="min-width: 90px;"
+              >
+                Qty
+              </th>
+              <th
+                class="px-4 py-3 text-right font-medium text-gray-700"
+                scope="col"
+                style="min-width: 90px;"
+              >
+                Scanned Qty
+              </th>
+              <th
+                class="px-4 py-3 text-left font-medium text-gray-700"
+                scope="col"
+                style="min-width: 100px;"
+              >
+                Drop ID
+              </th>
+            </tr>
+          </thead>
+          <tbody id="summary-body" class="divide-y divide-gray-200"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Right panel: Upload & Search -->
+    <section class="max-w-md mt-12 md:mt-0 bg-white rounded-lg shadow-lg p-8 flex flex-col">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center space-x-3">
+        <i class="fas fa-file-upload text-blue-600"></i>
+        <span>Upload Order Data File (CSV or Excel)</span>
+      </h2>
+      <form class="space-y-6" id="upload-form" aria-label="Upload order data CSV or Excel form">
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 mb-2"
+            for="file-input"
+          >
+            Select CSV or Excel file with columns:
+            <span class="font-semibold"
+              >orderKey, retailSKU, scVariance, qty, dropID</span
+            >
+          </label>
+          <input
+            accept=".csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            class="block w-full text-gray-700 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent p-2"
+            id="file-input"
+            required
+            type="file"
+            aria-describedby="upload-help"
+          />
+          <p id="upload-help" class="text-xs text-gray-500 mt-1">
+            Upload your order data CSV or Excel file here.
+          </p>
+        </div>
+        <div class="flex justify-end">
+          <button
+            class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1 transition"
+            type="submit"
+            aria-label="Upload order data file"
+          >
+            <i class="fas fa-upload mr-2"></i> Upload File
+          </button>
+        </div>
+      </form>
+      <div
+        class="mt-4 text-sm font-medium hidden"
+        id="upload-message"
+        role="alert"
+        aria-live="polite"
+      ></div>
+
+      <div class="mt-10">
+        <label
+          for="order-search"
+          class="block text-lg font-semibold text-gray-900 mb-2"
+          >Search Orders by Retail SKU or Order Key</label
+        >
+        <input
+          type="text"
+          id="order-search"
+          placeholder="Type retail SKU or order key..."
+          class="w-full rounded-md border border-gray-300 px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+          aria-describedby="search-help"
+          autocomplete="off"
+        />
+        <p id="search-help" class="text-xs text-gray-500 mt-1">
+          Search and view order details below.
+        </p>
+      </div>
+
+      <div
+        id="order-details"
+        class="mt-6 p-4 border border-gray-300 rounded-md bg-gray-50 hidden"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <h3 class="text-xl font-semibold mb-3 text-gray-900">Order Details</h3>
+        <dl class="grid grid-cols-1 gap-y-2 gap-x-6 sm:grid-cols-2">
+          <div>
+            <dt class="font-medium text-gray-700">Retail SKU (Item Code)</dt>
+            <dd id="detail-retailSKU" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">Order Key</dt>
+            <dd id="detail-orderKey" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">SCVariance</dt>
+            <dd id="detail-scVariance" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">Qty</dt>
+            <dd id="detail-qty" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">Drop ID</dt>
+            <dd id="detail-dropID" class="text-gray-900"></dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+    <div
+      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm"
+    >
+      © 2024 QC and Quantity Matching System. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      onValue,
+      set,
+      get,
+      child,
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCAl8GUL4qDo0wwsobeNPCYn1QyRmn_6dA",
+      authDomain: "quality-checks-system.firebaseapp.com",
+      databaseURL: "https://quality-checks-system-default-rtdb.firebaseio.com",
+      projectId: "quality-checks-system",
+      storageBucket: "quality-checks-system.firebasestorage.app",
+      messagingSenderId: "328518985158",
+      appId: "1:328518985158:web:328c5c7696bc49a7a2bec7",
+      measurementId: "G-WGQCLVGQJS",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    const mobileMenuButton = document.getElementById("mobile-menu-button");
+    const mobileMenu = document.getElementById("mobile-menu");
+    mobileMenuButton.addEventListener("click", () => {
+      mobileMenu.classList.toggle("hidden");
+    });
+
+    // Data structures
+    let orderData = {}; // retailSKU -> {orderKey, scVariance, qty, dropID}
+    let scannedData = {}; // retailSKU -> scannedQty
+    let inspectedByData = {}; // retailSKU -> inspectorName
+
+    // DOM elements
+    const uploadForm = document.getElementById("upload-form");
+    const fileInput = document.getElementById("file-input");
+    const uploadMessage = document.getElementById("upload-message");
+    const scanForm = document.getElementById("scan-form");
+    const retailSKUInput = document.getElementById("retailsku-input");
+    const inspectedByInput = document.getElementById("inspected-by-input");
+    const msgBox = document.getElementById("msg-box");
+    const summaryBody = document.getElementById("summary-body");
+    const resetScansBtn = document.getElementById("reset-scans");
+    const orderSearchInput = document.getElementById("order-search");
+    const orderDetails = document.getElementById("order-details");
+    const detailRetailSKU = document.getElementById("detail-retailSKU");
+    const detailOrderKey = document.getElementById("detail-orderKey");
+    const detailSCVariance = document.getElementById("detail-scVariance");
+    const detailQty = document.getElementById("detail-qty");
+    const detailDropID = document.getElementById("detail-dropID");
+    const dropIdFilterInput = document.getElementById("dropid-filter");
+    const currentQtyDisplay = document.getElementById("current-qty-display");
+    const displayRetailSKU = document.getElementById("display-retailSKU");
+    const displayOrderQty = document.getElementById("display-orderQty");
+    const displayScannedQty = document.getElementById("display-scannedQty");
+    const exportExcelBtn = document.getElementById("export-excel");
+
+    // Utility functions
+    function normalizeHeader(header) {
+      return header.toString().trim().toLowerCase();
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return [];
+      const headers = lines[0].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g).map(normalizeHeader);
+
+      const orderKeyIndex = headers.indexOf("orderkey");
+      const retailSKUIndex = headers.indexOf("retailsku");
+      const scVarianceIndex = headers.indexOf("scvariance");
+      const qtyIndex = headers.indexOf("qty");
+      const dropIDIndex = headers.indexOf("dropid");
+
+      if (
+        orderKeyIndex === -1 ||
+        retailSKUIndex === -1 ||
+        scVarianceIndex === -1 ||
+        qtyIndex === -1 ||
+        dropIDIndex === -1
+      )
+        return [];
+
+      const data = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        if (!cols || cols.length < headers.length) continue;
+        const orderKey = cols[orderKeyIndex].replace(/^"|"$/g, "").trim();
+        const retailSKU = cols[retailSKUIndex].replace(/^"|"$/g, "").trim();
+        const scVarianceRaw = cols[scVarianceIndex].replace(/^"|"$/g, "").trim();
+        const scVariance = isNaN(scVarianceRaw) ? scVarianceRaw : Number(scVarianceRaw);
+        const qtyRaw = cols[qtyIndex].replace(/^"|"$/g, "").trim();
+        const qty = parseInt(qtyRaw, 10);
+        const dropID = cols[dropIDIndex].replace(/^"|"$/g, "").trim();
+
+        if (orderKey && retailSKU && !isNaN(qty)) {
+          data.push({
+            orderKey,
+            retailSKU,
+            scVariance,
+            qty,
+            dropID,
+          });
+        }
+      }
+      return data;
+    }
+
+    function parseExcel(file, callback) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+          const normalizedData = jsonData.map(row => {
+            const normalizedRow = {};
+            for (const key in row) {
+              normalizedRow[key.toLowerCase().trim()] = row[key];
+            }
+            const orderKey = (normalizedRow["orderkey"] || "").toString().trim();
+            const retailSKU = (normalizedRow["retailsku"] || "").toString().trim();
+            const scVarianceRaw = normalizedRow["scvariance"];
+            const scVariance = isNaN(scVarianceRaw) ? scVarianceRaw : Number(scVarianceRaw);
+            const qtyRaw = normalizedRow["qty"];
+            const qty = parseInt(qtyRaw, 10);
+            const dropID = (normalizedRow["dropid"] || "").toString().trim();
+
+            if (orderKey && retailSKU && !isNaN(qty)) {
+              return {
+                orderKey,
+                retailSKU,
+                scVariance,
+                qty,
+                dropID,
+              };
+            }
+            return null;
+          }).filter(item => item !== null);
+          callback(normalizedData);
+        } catch (err) {
+          callback([]);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Save scanned data to Firebase under "scanned" node keyed by retailSKU
+    async function saveScanToFirebase(retailSKU, scannedQty, inspectorName) {
+      try {
+        const scanRef = ref(db, `scanned/${retailSKU}`);
+        await set(scanRef, {
+          retailSKU,
+          scannedQty,
+          inspectedBy: inspectorName || null,
+          timestamp: Date.now(),
+        });
+      } catch (error) {
+        console.error("Error saving scan to Firebase:", error);
+      }
+    }
+
+    // Load scanned data from Firebase and update scannedData object
+    function loadScannedDataFromFirebase() {
+      const scannedRef = ref(db, "scanned");
+      onValue(scannedRef, (snapshot) => {
+        scannedData = {};
+        inspectedByData = {};
+        const data = snapshot.val();
+        if (data) {
+          for (const retailSKU in data) {
+            if (data.hasOwnProperty(retailSKU)) {
+              scannedData[retailSKU] = data[retailSKU].scannedQty || 0;
+              inspectedByData[retailSKU] = data[retailSKU].inspectedBy || null;
+            }
+          }
+        }
+        updateSummaryTable();
+      });
+    }
+
+    // Reset scanned data both locally and in Firebase
+    async function resetScans() {
+      scannedData = {};
+      inspectedByData = {};
+      updateSummaryTable();
+      msgBox.classList.add("hidden");
+      msgBox.textContent = "";
+      scanForm.reset();
+      retailSKUInput.focus();
+      orderDetails.classList.add("hidden");
+      currentQtyDisplay.classList.add("hidden");
+      displayRetailSKU.textContent = "";
+      displayOrderQty.textContent = "";
+      displayScannedQty.textContent = "";
+      dropIdFilterInput.value = "";
+      try {
+        await set(ref(db, "scanned"), null);
+      } catch (error) {
+        console.error("Error resetting scanned data in Firebase:", error);
+      }
+    }
+
+    resetScansBtn.addEventListener("click", () => {
+      resetScans();
+    });
+
+    function updateSummaryTable() {
+      summaryBody.innerHTML = "";
+      const retailSKUs = Object.keys(orderData);
+      if (retailSKUs.length === 0) {
+        summaryBody.innerHTML =
+          '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+        return;
+      }
+      const filterDropId = dropIdFilterInput.value.trim().toLowerCase();
+      let filteredRetailSKUs = retailSKUs;
+      if (filterDropId) {
+        filteredRetailSKUs = retailSKUs.filter(retailSKU => {
+          const dropId = orderData[retailSKU].dropID || "";
+          return dropId.toLowerCase().includes(filterDropId);
+        });
+      }
+      if (filteredRetailSKUs.length === 0) {
+        summaryBody.innerHTML =
+          '<tr><td colspan="6" class="text-center py-4 text-gray-500">No scanned items match the Drop ID filter.</td></tr>';
+        return;
+      }
+      filteredRetailSKUs.forEach((retailSKU) => {
+        const order = orderData[retailSKU];
+        const scannedQty = scannedData[retailSKU] || 0;
+        const scVarianceDisplay = order.scVariance !== undefined && order.scVariance !== null ? order.scVariance : "-";
+        const row = document.createElement("tr");
+        row.className = scannedQty > order.qty ? "bg-red-50" : "";
+        row.innerHTML = `
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900 font-mono">${retailSKU}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900 font-mono">${order.orderKey}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-right font-semibold ${
+            (typeof scVarianceDisplay === "number" && scVarianceDisplay < 0) ? "text-red-600" : "text-gray-900"
+          }">${scVarianceDisplay}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-right font-semibold text-gray-900">${order.qty}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-right font-semibold ${
+            scannedQty > order.qty ? "text-red-600" : "text-gray-900"
+          }">${scannedQty}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900">${order.dropID}</td>
+        `;
+        summaryBody.appendChild(row);
+      });
+    }
+
+    function showMessage(text, type = "info") {
+      msgBox.textContent = text;
+      msgBox.classList.remove(
+        "hidden",
+        "bg-red-100",
+        "text-red-800",
+        "bg-yellow-100",
+        "text-yellow-800",
+        "bg-green-100",
+        "text-green-800",
+        "bg-blue-100",
+        "text-blue-800"
+      );
+      if (type === "error") {
+        msgBox.classList.add("bg-red-100", "text-red-800");
+      } else if (type === "warning") {
+        msgBox.classList.add("bg-yellow-100", "text-yellow-800");
+      } else if (type === "success") {
+        msgBox.classList.add("bg-green-100", "text-green-800");
+      } else {
+        msgBox.classList.add("bg-blue-100", "text-blue-800");
+      }
+      msgBox.classList.remove("hidden");
+    }
+
+    uploadForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      uploadMessage.classList.add("hidden");
+      msgBox.classList.add("hidden");
+      msgBox.textContent = "";
+      orderData = {};
+      orderDetails.classList.add("hidden");
+      currentQtyDisplay.classList.add("hidden");
+      displayRetailSKU.textContent = "";
+      displayOrderQty.textContent = "";
+      displayScannedQty.textContent = "";
+      dropIdFilterInput.value = "";
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select a CSV or Excel file.");
+        return;
+      }
+      const fileName = file.name.toLowerCase();
+      if (fileName.endsWith(".csv")) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const text = event.target.result;
+            const parsedData = parseCSV(text);
+            if (parsedData.length === 0) {
+              uploadMessage.textContent =
+                "Invalid CSV format or no valid data found. Please ensure your file has columns: orderKey, retailSKU, scVariance, qty, dropID.";
+              uploadMessage.classList.remove("hidden");
+              uploadMessage.classList.remove("text-green-600");
+              uploadMessage.classList.add("text-red-600");
+              summaryBody.innerHTML =
+                '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+              return;
+            }
+            parsedData.forEach((item) => {
+              orderData[item.retailSKU] = {
+                orderKey: item.orderKey,
+                scVariance: item.scVariance,
+                qty: item.qty,
+                dropID: item.dropID,
+              };
+            });
+            uploadMessage.textContent = `Successfully uploaded ${parsedData.length} records. You can now scan item codes one by one.`;
+            uploadMessage.classList.remove("hidden");
+            uploadMessage.classList.remove("text-red-600");
+            uploadMessage.classList.add("text-green-600");
+            uploadForm.reset();
+            resetScans();
+            updateSummaryTable();
+            retailSKUInput.focus();
+            loadScannedDataFromFirebase();
+          } catch {
+            uploadMessage.textContent =
+              "Error parsing CSV file. Please check the file format.";
+            uploadMessage.classList.remove("hidden");
+            uploadMessage.classList.remove("text-green-600");
+            uploadMessage.classList.add("text-red-600");
+            summaryBody.innerHTML =
+              '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+          }
+        };
+        reader.readAsText(file);
+      } else if (fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) {
+        parseExcel(file, (parsedData) => {
+          if (parsedData.length === 0) {
+            uploadMessage.textContent =
+              "Invalid Excel format or no valid data found. Please ensure your file has columns: orderKey, retailSKU, scVariance, qty, dropID.";
+            uploadMessage.classList.remove("hidden");
+            uploadMessage.classList.remove("text-green-600");
+            uploadMessage.classList.add("text-red-600");
+            summaryBody.innerHTML =
+              '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+            return;
+          }
+          parsedData.forEach((item) => {
+            orderData[item.retailSKU] = {
+              orderKey: item.orderKey,
+              scVariance: item.scVariance,
+              qty: item.qty,
+              dropID: item.dropID,
+            };
+          });
+          uploadMessage.textContent = `Successfully uploaded ${parsedData.length} records. You can now scan item codes one by one.`;
+          uploadMessage.classList.remove("hidden");
+          uploadMessage.classList.remove("text-red-600");
+          uploadMessage.classList.add("text-green-600");
+          uploadForm.reset();
+          resetScans();
+          updateSummaryTable();
+          retailSKUInput.focus();
+          loadScannedDataFromFirebase();
+        });
+      } else {
+        alert("Unsupported file type. Please upload a CSV or Excel file.");
+      }
+    });
+
+    function updateCurrentQtyDisplay(retailSKU) {
+      if (!retailSKU || !orderData[retailSKU]) {
+        currentQtyDisplay.classList.add("hidden");
+        displayRetailSKU.textContent = "";
+        displayOrderQty.textContent = "";
+        displayScannedQty.textContent = "";
+        return;
+      }
+      const order = orderData[retailSKU];
+      const qty = order.qty;
+      const scannedQty = scannedData[retailSKU] || 0;
+      displayRetailSKU.textContent = retailSKU;
+      displayOrderQty.textContent = qty;
+      displayScannedQty.textContent = scannedQty;
+      currentQtyDisplay.classList.remove("hidden");
+    }
+
+    scanForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msgBox.classList.add("hidden");
+      msgBox.textContent = "";
+
+      const retailSKU = retailSKUInput.value.trim();
+      const inspectorName = inspectedByInput.value.trim();
+
+      if (!retailSKU) {
+        alert("Please enter or scan an Item Code (Retail SKU).");
+        return;
+      }
+      if (!orderData[retailSKU]) {
+        alert(`Error: Item Code (Retail SKU) "${retailSKU}" not found in uploaded order data.`);
+        scanForm.reset();
+        retailSKUInput.focus();
+        updateCurrentQtyDisplay(null);
+        return;
+      }
+
+      const order = orderData[retailSKU];
+      const qty = order.qty;
+      const currentScannedQty = scannedData[retailSKU] || 0;
+      const newScannedQty = currentScannedQty + 1;
+
+      scannedData[retailSKU] = newScannedQty;
+      if (inspectorName) {
+        inspectedByData[retailSKU] = inspectorName;
+      }
+
+      await saveScanToFirebase(retailSKU, newScannedQty, inspectorName);
+
+      if (newScannedQty > qty) {
+        alert(
+          `Excess quantity error for Item Code "${retailSKU}": Scanned quantity (${newScannedQty}) exceeds order quantity (${qty}).`
+        );
+        showMessage(
+          `Excess quantity error for Item Code "${retailSKU}": Scanned quantity (${newScannedQty}) exceeds order quantity (${qty}).`,
+          "error"
+        );
+      } else if (newScannedQty === qty) {
+        showMessage(
+          `Item Code "${retailSKU}" fully scanned. Scanned quantity matches order quantity (${qty}).`,
+          "success"
+        );
+      } else {
+        showMessage(
+          `Item Code "${retailSKU}" scanned. Scanned quantity: ${newScannedQty} / Order quantity: ${qty}.`,
+          "info"
+        );
+      }
+
+      updateSummaryTable();
+      updateCurrentQtyDisplay(retailSKU);
+      scanForm.reset();
+      retailSKUInput.focus();
+    });
+
+    orderSearchInput.addEventListener("input", () => {
+      const query = orderSearchInput.value.trim().toLowerCase();
+      if (!query) {
+        orderDetails.classList.add("hidden");
+        return;
+      }
+      const foundEntry = Object.entries(orderData).find(([retailSKU, data]) => {
+        return (
+          retailSKU.toLowerCase().includes(query) ||
+          (data.orderKey && data.orderKey.toLowerCase().includes(query))
+        );
+      });
+      if (!foundEntry) {
+        orderDetails.classList.add("hidden");
+        return;
+      }
+      const [retailSKU, data] = foundEntry;
+      detailRetailSKU.textContent = retailSKU;
+      detailOrderKey.textContent = data.orderKey || "-";
+      detailSCVariance.textContent = data.scVariance !== undefined && data.scVariance !== null ? data.scVariance : "-";
+      detailQty.textContent = data.qty || "-";
+      detailDropID.textContent = data.dropID || "-";
+      orderDetails.classList.remove("hidden");
+    });
+
+    dropIdFilterInput.addEventListener("input", () => {
+      updateSummaryTable();
+    });
+
+    // Load scanned data on page load
+    window.addEventListener("load", () => {
+      loadScannedDataFromFirebase();
+    });
+
+    // Export scanned data to Excel
+    exportExcelBtn.addEventListener("click", () => {
+      const exportData = [];
+      const retailSKUs = Object.keys(orderData);
+      if (retailSKUs.length === 0) {
+        alert("No order data to export.");
+        return;
+      }
+      retailSKUs.forEach(retailSKU => {
+        const order = orderData[retailSKU];
+        const scannedQty = scannedData[retailSKU] || 0;
+        exportData.push({
+          "Retail SKU (Item Code)": retailSKU,
+          "Order Key": order.orderKey,
+          "SCVariance": order.scVariance,
+          "Qty": order.qty,
+          "Scanned Qty": scannedQty,
+          "Drop ID": order.dropID,
+        });
+      });
+      if (exportData.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Scanned Data");
+      XLSX.writeFile(workbook, "scanned_data_export.xlsx");
+    });
+
+    summaryBody.innerHTML =
+      '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+  </script>
+</body>
+</html>
