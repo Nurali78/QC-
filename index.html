@@ -99,6 +99,18 @@
         </p>
       </div>
 
+      <!-- Export button -->
+      <div class="mb-4 max-w-md flex justify-end">
+        <button
+          id="export-summary"
+          class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition"
+          aria-label="Export summary data to Excel"
+          type="button"
+        >
+          <i class="fas fa-file-excel mr-2"></i> Export Summary Excel
+        </button>
+      </div>
+
       <!-- Display scanned and order qty for current barcode -->
       <div id="current-qty-display" class="mb-6 p-4 bg-blue-50 border border-blue-300 rounded-md max-w-md hidden" aria-live="polite" aria-atomic="true">
         <p class="text-lg font-semibold text-blue-800">
@@ -432,6 +444,7 @@
     const detailInspectedBy = document.getElementById("detail-inspectedBy");
     const detailScannedQty = document.getElementById("detail-scannedQty");
     const dropIdFilterInput = document.getElementById("dropid-filter");
+    const exportSummaryBtn = document.getElementById("export-summary");
 
     // Helper to create unique key for scannedData and inspectedByData
     function makeUniqueKey(dropID, barcode) {
@@ -608,7 +621,7 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // Handle scan form submission - auto add scanned qty = 1 per scan
+    // Handle scan form submission - update scanned qty only for filtered Drop ID if set, else all matching
     scanForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       msgBox.classList.add("hidden");
@@ -616,14 +629,16 @@
 
       const barcode = barcodeInput.value.trim();
       const inspectorName = inspectedByInput.value.trim();
+      const filterDropId = dropIdFilterInput.value.trim().toLowerCase();
 
       if (!barcode) {
         alert("Please enter or scan a barcode.");
         return;
       }
 
-      // Find all items matching this barcode (could be multiple drop IDs)
-      const matchingItems = orderData.filter(item => item.barcode === barcode);
+      // Find matching items by barcode
+      let matchingItems = orderData.filter(item => item.barcode === barcode);
+
       if (matchingItems.length === 0) {
         alert(`Error: Barcode "${barcode}" not found in uploaded order data.`);
         scanForm.reset();
@@ -631,7 +646,18 @@
         return;
       }
 
-      // For simplicity, increment scanned qty for all matching items by 1
+      // If Drop ID filter is set, restrict matching items to those with matching dropID
+      if (filterDropId) {
+        matchingItems = matchingItems.filter(item => (item.dropID || "").toLowerCase().includes(filterDropId));
+        if (matchingItems.length === 0) {
+          alert(`Error: Barcode "${barcode}" not found in filtered Drop ID "${filterDropId}".`);
+          scanForm.reset();
+          barcodeInput.focus();
+          return;
+        }
+      }
+
+      // Increment scanned qty only for matching items (filtered by Drop ID if set)
       matchingItems.forEach(item => {
         const uniqueKey = makeUniqueKey(item.dropID, item.barcode);
         const currentScannedQty = scannedData[uniqueKey] || 0;
@@ -640,11 +666,11 @@
         if (inspectorName) {
           inspectedByData[uniqueKey] = inspectorName;
         }
-        // Save scan record to Firebase (optional: you may want to save per item)
+        // Save scan record to Firebase (optional)
         saveScanToFirebase(item.dropID, item.barcode, newScannedQty, inspectorName);
       });
 
-      // Show message for first matching item (you can customize)
+      // Show message for first matching item
       const firstItem = matchingItems[0];
       const uniqueKey = makeUniqueKey(firstItem.dropID, firstItem.barcode);
       const scannedQty = scannedData[uniqueKey];
@@ -705,6 +731,59 @@
     // Filter summary table on Drop ID input
     dropIdFilterInput.addEventListener("input", () => {
       updateSummaryTable();
+    });
+
+    // Export summary data to Excel
+    exportSummaryBtn.addEventListener("click", () => {
+      if (orderData.length === 0) {
+        alert("No order data to export.");
+        return;
+      }
+      const filterDropId = dropIdFilterInput.value.trim().toLowerCase();
+      let filteredItems = orderData;
+      if (filterDropId) {
+        filteredItems = orderData.filter(item => (item.dropID || "").toLowerCase().includes(filterDropId));
+      }
+      if (filteredItems.length === 0) {
+        alert("No scanned items match the Drop ID filter.");
+        return;
+      }
+
+      // Prepare worksheet data
+      const wsData = [
+        [
+          "Drop ID",
+          "Barcode (Retail SKU)",
+          "Order Key",
+          "SCVariance",
+          "Qty",
+          "Scanned Qty",
+          "Inspected By"
+        ]
+      ];
+
+      filteredItems.forEach(item => {
+        const uniqueKey = makeUniqueKey(item.dropID, item.barcode);
+        const scannedQty = scannedData[uniqueKey] || 0;
+        const inspectedBy = inspectedByData[uniqueKey] || "";
+        wsData.push([
+          item.dropID || "",
+          item.barcode || "",
+          item.orderKey || "",
+          item.scVariance || "",
+          item.qty,
+          scannedQty,
+          inspectedBy
+        ]);
+      });
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, "Scanned Summary");
+
+      // Export to file
+      XLSX.writeFile(wb, "scanned_items_summary.xlsx");
     });
 
     // Initialize summary table with no data message
