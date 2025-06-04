@@ -80,40 +80,29 @@
     <section class="flex-grow max-w-4xl mx-auto md:mx-0 bg-white rounded-lg shadow-lg p-8">
       <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center space-x-3">
         <i class="fas fa-barcode text-blue-600"></i>
-        <span>Scan Item Code &amp; Track Quantities</span>
+        <span>Scan Barcode &amp; Track Quantities</span>
       </h2>
 
       <!-- Filter by Drop ID -->
-      <div class="mb-6 max-w-md flex items-center space-x-3">
-        <div class="flex-grow">
-          <label for="dropid-filter" class="block text-sm font-medium text-gray-700 mb-2">Filter by Drop ID</label>
-          <input
-            type="text"
-            id="dropid-filter"
-            placeholder="Type Drop ID to filter scanned items summary"
-            class="block w-full rounded-md border border-gray-300 px-3 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono"
-            autocomplete="off"
-            aria-describedby="dropid-filter-help"
-          />
-          <p id="dropid-filter-help" class="text-xs text-gray-500 mt-1">
-            Filter scanned items summary table by Drop ID.
-          </p>
-        </div>
-        <button
-          id="export-excel"
-          class="mt-6 inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition"
-          aria-label="Export scanned data to Excel"
-          title="Export scanned data to Excel"
-          type="button"
-        >
-          <i class="fas fa-file-excel mr-2"></i> Export Excel
-        </button>
+      <div class="mb-6 max-w-md">
+        <label for="dropid-filter" class="block text-sm font-medium text-gray-700 mb-2">Filter by Drop ID</label>
+        <input
+          type="text"
+          id="dropid-filter"
+          placeholder="Type Drop ID to filter scanned items summary"
+          class="block w-full rounded-md border border-gray-300 px-3 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono"
+          autocomplete="off"
+          aria-describedby="dropid-filter-help"
+        />
+        <p id="dropid-filter-help" class="text-xs text-gray-500 mt-1">
+          Filter scanned items summary table by Drop ID.
+        </p>
       </div>
 
-      <!-- Display scanned and order qty for current item code -->
+      <!-- Display scanned and order qty for current barcode -->
       <div id="current-qty-display" class="mb-6 p-4 bg-blue-50 border border-blue-300 rounded-md max-w-md hidden" aria-live="polite" aria-atomic="true">
         <p class="text-lg font-semibold text-blue-800">
-          <span id="display-retailSKU" class="font-mono"></span>
+          <span id="display-barcode" class="font-mono"></span>
         </p>
         <p class="mt-1 text-blue-700">
           Order Quantity: <span id="display-orderQty" class="font-semibold"></span> &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -125,26 +114,26 @@
         class="space-y-6 max-w-md"
         id="scan-form"
         autocomplete="off"
-        aria-label="Scan item code form"
+        aria-label="Scan barcode form"
       >
         <div>
           <label
             class="block text-sm font-medium text-gray-700 mb-2"
-            for="retailsku-input"
-            >Enter or Scan Item Code (Retail SKU)</label
+            for="barcode-input"
+            >Enter or Scan Barcode</label
           >
           <input
             autocomplete="off"
             class="block w-full rounded-md border border-gray-300 px-3 py-3 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-            id="retailsku-input"
-            placeholder="Scan or type item code here"
+            id="barcode-input"
+            placeholder="Scan or type barcode here"
             required
             type="text"
             autofocus
-            aria-describedby="retailsku-help"
+            aria-describedby="barcode-help"
           />
-          <p id="retailsku-help" class="text-xs text-gray-500 mt-1">
-            Item Code must match uploaded order data.
+          <p id="barcode-help" class="text-xs text-gray-500 mt-1">
+            Barcode must match uploaded order data.
           </p>
         </div>
 
@@ -171,7 +160,7 @@
           <button
             class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1 transition"
             type="submit"
-            aria-label="Add scanned item code"
+            aria-label="Add scanned barcode"
           >
             <i class="fas fa-check mr-2"></i> Add Scan
           </button>
@@ -209,16 +198,23 @@
           aria-describedby="summary-desc"
         >
           <caption id="summary-desc" class="sr-only">
-            Table showing retail SKU, order key, SC variance, quantity, scanned quantity, and drop ID.
+            Table showing drop ID, barcode, order key, SCVariance, quantity, scanned quantity, and inspected by.
           </caption>
           <thead class="bg-gray-100 sticky top-0 z-10">
             <tr>
               <th
-                class="px-4 py-3 text-left font-medium text-gray-700 sticky left-0 bg-gray-100 z-20"
+                class="px-4 py-3 text-left font-medium text-gray-700 sticky left-0 bg-gray-100 z-30"
+                scope="col"
+                style="min-width: 100px;"
+              >
+                Drop ID
+              </th>
+              <th
+                class="px-4 py-3 text-left font-medium text-gray-700 sticky left-[100px] bg-gray-100 z-20"
                 scope="col"
                 style="min-width: 140px;"
               >
-                Retail SKU (Item Code)
+                Barcode (Retail SKU)
               </th>
               <th
                 class="px-4 py-3 text-left font-medium text-gray-700"
@@ -228,9 +224,9 @@
                 Order Key
               </th>
               <th
-                class="px-4 py-3 text-right font-medium text-gray-700"
+                class="px-4 py-3 text-left font-medium text-gray-700"
                 scope="col"
-                style="min-width: 90px;"
+                style="min-width: 120px;"
               >
                 SCVariance
               </th>
@@ -251,9 +247,9 @@
               <th
                 class="px-4 py-3 text-left font-medium text-gray-700"
                 scope="col"
-                style="min-width: 100px;"
+                style="min-width: 140px;"
               >
-                Drop ID
+                Inspected By
               </th>
             </tr>
           </thead>
@@ -266,21 +262,21 @@
     <section class="max-w-md mt-12 md:mt-0 bg-white rounded-lg shadow-lg p-8 flex flex-col">
       <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center space-x-3">
         <i class="fas fa-file-upload text-blue-600"></i>
-        <span>Upload Order Data File (CSV or Excel)</span>
+        <span>Upload Order Data File (Excel)</span>
       </h2>
-      <form class="space-y-6" id="upload-form" aria-label="Upload order data CSV or Excel form">
+      <form class="space-y-6" id="upload-form" aria-label="Upload order data Excel form">
         <div>
           <label
             class="block text-sm font-medium text-gray-700 mb-2"
             for="file-input"
           >
-            Select CSV or Excel file with columns:
+            Select Excel file with columns:
             <span class="font-semibold"
-              >orderKey, retailSKU, scVariance, qty, dropID</span
+              >Order Key, Retail SKU (Barcode), SCVariance, Qty, Drop ID</span
             >
           </label>
           <input
-            accept=".csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            accept=".xlsx,.xls"
             class="block w-full text-gray-700 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent p-2"
             id="file-input"
             required
@@ -288,7 +284,7 @@
             aria-describedby="upload-help"
           />
           <p id="upload-help" class="text-xs text-gray-500 mt-1">
-            Upload your order data CSV or Excel file here.
+            Upload your order data Excel file here.
           </p>
         </div>
         <div class="flex justify-end">
@@ -312,12 +308,12 @@
         <label
           for="order-search"
           class="block text-lg font-semibold text-gray-900 mb-2"
-          >Search Orders by Retail SKU or Order Key</label
+          >Search Orders by Order Key or Barcode</label
         >
         <input
           type="text"
           id="order-search"
-          placeholder="Type retail SKU or order key..."
+          placeholder="Type order key or barcode..."
           class="w-full rounded-md border border-gray-300 px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
           aria-describedby="search-help"
           autocomplete="off"
@@ -336,24 +332,32 @@
         <h3 class="text-xl font-semibold mb-3 text-gray-900">Order Details</h3>
         <dl class="grid grid-cols-1 gap-y-2 gap-x-6 sm:grid-cols-2">
           <div>
-            <dt class="font-medium text-gray-700">Retail SKU (Item Code)</dt>
-            <dd id="detail-retailSKU" class="text-gray-900"></dd>
-          </div>
-          <div>
             <dt class="font-medium text-gray-700">Order Key</dt>
             <dd id="detail-orderKey" class="text-gray-900"></dd>
           </div>
           <div>
-            <dt class="font-medium text-gray-700">SCVariance</dt>
-            <dd id="detail-scVariance" class="text-gray-900"></dd>
+            <dt class="font-medium text-gray-700">Barcode</dt>
+            <dd id="detail-barcode" class="text-gray-900"></dd>
           </div>
           <div>
-            <dt class="font-medium text-gray-700">Qty</dt>
+            <dt class="font-medium text-gray-700">SCVariance</dt>
+            <dd id="detail-scvariance" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">Quantity</dt>
             <dd id="detail-qty" class="text-gray-900"></dd>
           </div>
           <div>
             <dt class="font-medium text-gray-700">Drop ID</dt>
             <dd id="detail-dropID" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">Scanned Quantity</dt>
+            <dd id="detail-scannedQty" class="text-gray-900"></dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-700">Inspected By</dt>
+            <dd id="detail-inspectedBy" class="text-gray-900"></dd>
           </div>
         </dl>
       </div>
@@ -368,16 +372,15 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script type="module">
+    // Firebase imports and initialization
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
     import {
       getDatabase,
       ref,
       push,
-      set,
-      onValue,
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -395,229 +398,102 @@
     const analytics = getAnalytics(app);
     const db = getDatabase(app);
 
+    // Mobile menu toggle
     const mobileMenuButton = document.getElementById("mobile-menu-button");
     const mobileMenu = document.getElementById("mobile-menu");
     mobileMenuButton.addEventListener("click", () => {
       mobileMenu.classList.toggle("hidden");
     });
 
-    let orderData = {}; // retailSKU -> {orderKey, scVariance, qty, dropID}
-    let scannedData = {}; // retailSKU -> scannedQty
-    let inspectedByData = {}; // retailSKU -> inspectorName
+    // Data store for uploaded order data: array of items (each with dropID, barcode, orderKey, scVariance, qty)
+    let orderData = [];
+    // Store scanned quantities per unique key: dropID + barcode (to distinguish same barcode in different drops)
+    let scannedData = {};
+    // Store inspectedBy per unique key (latest)
+    let inspectedByData = {};
 
+    // Elements
     const uploadForm = document.getElementById("upload-form");
     const fileInput = document.getElementById("file-input");
     const uploadMessage = document.getElementById("upload-message");
     const scanForm = document.getElementById("scan-form");
-    const retailSKUInput = document.getElementById("retailsku-input");
+    const barcodeInput = document.getElementById("barcode-input");
     const inspectedByInput = document.getElementById("inspected-by-input");
     const msgBox = document.getElementById("msg-box");
     const summaryBody = document.getElementById("summary-body");
     const resetScansBtn = document.getElementById("reset-scans");
     const orderSearchInput = document.getElementById("order-search");
     const orderDetails = document.getElementById("order-details");
-    const detailRetailSKU = document.getElementById("detail-retailSKU");
     const detailOrderKey = document.getElementById("detail-orderKey");
-    const detailSCVariance = document.getElementById("detail-scVariance");
+    const detailBarcode = document.getElementById("detail-barcode");
+    const detailSCVariance = document.getElementById("detail-scvariance");
     const detailQty = document.getElementById("detail-qty");
     const detailDropID = document.getElementById("detail-dropID");
+    const detailInspectedBy = document.getElementById("detail-inspectedBy");
+    const detailScannedQty = document.getElementById("detail-scannedQty");
     const dropIdFilterInput = document.getElementById("dropid-filter");
-    const currentQtyDisplay = document.getElementById("current-qty-display");
-    const displayRetailSKU = document.getElementById("display-retailSKU");
-    const displayOrderQty = document.getElementById("display-orderQty");
-    const displayScannedQty = document.getElementById("display-scannedQty");
-    const exportExcelBtn = document.getElementById("export-excel");
 
-    function normalizeHeader(header) {
-      return header.toString().trim().toLowerCase();
+    // Helper to create unique key for scannedData and inspectedByData
+    function makeUniqueKey(dropID, barcode) {
+      return `${dropID}||${barcode}`;
     }
 
-    function parseCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      if (lines.length < 2) return [];
-      const headers = lines[0].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g).map(normalizeHeader);
-
-      const orderKeyIndex = headers.indexOf("orderkey");
-      const retailSKUIndex = headers.indexOf("retailsku");
-      const scVarianceIndex = headers.indexOf("scvariance");
-      const qtyIndex = headers.indexOf("qty");
-      const dropIDIndex = headers.indexOf("dropid");
-
-      if (
-        orderKeyIndex === -1 ||
-        retailSKUIndex === -1 ||
-        scVarianceIndex === -1 ||
-        qtyIndex === -1 ||
-        dropIDIndex === -1
-      )
-        return [];
-
-      const data = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-        if (!cols || cols.length < headers.length) continue;
-        const orderKey = cols[orderKeyIndex].replace(/^"|"$/g, "").trim();
-        const retailSKU = cols[retailSKUIndex].replace(/^"|"$/g, "").trim();
-        const scVarianceRaw = cols[scVarianceIndex].replace(/^"|"$/g, "").trim();
-        const scVariance = isNaN(scVarianceRaw) ? scVarianceRaw : Number(scVarianceRaw);
-        const qtyRaw = cols[qtyIndex].replace(/^"|"$/g, "").trim();
-        const qty = parseInt(qtyRaw, 10);
-        const dropID = cols[dropIDIndex].replace(/^"|"$/g, "").trim();
-
-        if (orderKey && retailSKU && !isNaN(qty)) {
-          data.push({
-            orderKey,
-            retailSKU,
-            scVariance,
-            qty,
-            dropID,
-          });
-        }
-      }
-      return data;
-    }
-
-    function parseExcel(file, callback) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-          const normalizedData = jsonData.map(row => {
-            const normalizedRow = {};
-            for (const key in row) {
-              normalizedRow[key.toLowerCase().trim()] = row[key];
-            }
-            const orderKey = (normalizedRow["orderkey"] || "").toString().trim();
-            const retailSKU = (normalizedRow["retailsku"] || "").toString().trim();
-            const scVarianceRaw = normalizedRow["scvariance"];
-            const scVariance = isNaN(scVarianceRaw) ? scVarianceRaw : Number(scVarianceRaw);
-            const qtyRaw = normalizedRow["qty"];
-            const qty = parseInt(qtyRaw, 10);
-            const dropID = (normalizedRow["dropid"] || "").toString().trim();
-
-            if (orderKey && retailSKU && !isNaN(qty)) {
-              return {
-                orderKey,
-                retailSKU,
-                scVariance,
-                qty,
-                dropID,
-              };
-            }
-            return null;
-          }).filter(item => item !== null);
-          callback(normalizedData);
-        } catch (err) {
-          callback([]);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    async function saveScanToFirebase(retailSKU, scannedQty, inspectorName) {
-      try {
-        const scanRef = ref(db, `scanned/${retailSKU}`);
-        await set(scanRef, {
-          retailSKU,
-          scannedQty,
-          inspectedBy: inspectorName || null,
-          timestamp: Date.now(),
-        });
-      } catch (error) {
-        console.error("Error saving scan to Firebase:", error);
-      }
-    }
-
-    function loadScannedDataFromFirebase() {
-      const scannedRef = ref(db, "scanned");
-      onValue(scannedRef, (snapshot) => {
-        scannedData = {};
-        inspectedByData = {};
-        const data = snapshot.val();
-        if (data) {
-          for (const retailSKU in data) {
-            if (data.hasOwnProperty(retailSKU)) {
-              scannedData[retailSKU] = data[retailSKU].scannedQty || 0;
-              inspectedByData[retailSKU] = data[retailSKU].inspectedBy || null;
-            }
-          }
-        }
-        updateSummaryTable();
-      });
-    }
-
-    async function resetScans() {
+    // Reset scanned data and UI
+    function resetScans() {
       scannedData = {};
       inspectedByData = {};
       updateSummaryTable();
       msgBox.classList.add("hidden");
       msgBox.textContent = "";
       scanForm.reset();
-      retailSKUInput.focus();
+      barcodeInput.focus();
       orderDetails.classList.add("hidden");
-      currentQtyDisplay.classList.add("hidden");
-      displayRetailSKU.textContent = "";
-      displayOrderQty.textContent = "";
-      displayScannedQty.textContent = "";
       dropIdFilterInput.value = "";
-      try {
-        await set(ref(db, "scanned"), null);
-      } catch (error) {
-        console.error("Error resetting scanned data in Firebase:", error);
-      }
     }
 
     resetScansBtn.addEventListener("click", () => {
       resetScans();
     });
 
+    // Update summary table with current scanned data and order data, filtered by Drop ID if set
     function updateSummaryTable() {
       summaryBody.innerHTML = "";
-      const retailSKUs = Object.keys(orderData);
-      if (retailSKUs.length === 0) {
+      if (orderData.length === 0) {
         summaryBody.innerHTML =
-          '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+          '<tr><td colspan="7" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
         return;
       }
       const filterDropId = dropIdFilterInput.value.trim().toLowerCase();
-      let filteredRetailSKUs = retailSKUs;
+      let filteredItems = orderData;
       if (filterDropId) {
-        filteredRetailSKUs = retailSKUs.filter(retailSKU => {
-          const dropId = orderData[retailSKU].dropID || "";
-          return dropId.toLowerCase().includes(filterDropId);
-        });
+        filteredItems = orderData.filter(item => (item.dropID || "").toLowerCase().includes(filterDropId));
       }
-      if (filteredRetailSKUs.length === 0) {
+      if (filteredItems.length === 0) {
         summaryBody.innerHTML =
-          '<tr><td colspan="6" class="text-center py-4 text-gray-500">No scanned items match the Drop ID filter.</td></tr>';
+          '<tr><td colspan="7" class="text-center py-4 text-gray-500">No scanned items match the Drop ID filter.</td></tr>';
         return;
       }
-      filteredRetailSKUs.forEach((retailSKU) => {
-        const order = orderData[retailSKU];
-        const scannedQty = scannedData[retailSKU] || 0;
-        const scVarianceDisplay = order.scVariance !== undefined && order.scVariance !== null ? order.scVariance : "-";
+      filteredItems.forEach((item) => {
+        const uniqueKey = makeUniqueKey(item.dropID, item.barcode);
+        const scannedQty = scannedData[uniqueKey] || 0;
         const row = document.createElement("tr");
-        row.className = scannedQty > order.qty ? "bg-red-50" : "";
+        row.className = scannedQty > item.qty ? "bg-red-50" : "";
         row.innerHTML = `
-          <td class="px-4 py-2 whitespace-nowrap text-gray-900 font-mono">${retailSKU}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-gray-900 font-mono">${order.orderKey}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900 font-mono sticky left-0 bg-white z-30">${item.dropID || "-"}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900 font-mono sticky left-[100px] bg-white z-20">${item.barcode || "-"}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900">${item.orderKey || "-"}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900">${item.scVariance || "-"}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-right text-gray-900">${item.qty}</td>
           <td class="px-4 py-2 whitespace-nowrap text-right font-semibold ${
-            (typeof scVarianceDisplay === "number" && scVarianceDisplay < 0) ? "text-red-600" : "text-gray-900"
-          }">${scVarianceDisplay}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-right font-semibold text-gray-900">${order.qty}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-right font-semibold ${
-            scannedQty > order.qty ? "text-red-600" : "text-gray-900"
+            scannedQty > item.qty ? "text-red-600" : "text-gray-900"
           }">${scannedQty}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-gray-900">${order.dropID}</td>
+          <td class="px-4 py-2 whitespace-nowrap text-gray-900">${inspectedByData[uniqueKey] || "-"}</td>
         `;
         summaryBody.appendChild(row);
       });
     }
 
+    // Show message in msgBox with styling
     function showMessage(text, type = "info") {
       msgBox.textContent = text;
       msgBox.classList.remove(
@@ -643,254 +519,197 @@
       msgBox.classList.remove("hidden");
     }
 
+    // Save scan record to Firebase Realtime Database
+    async function saveScanToFirebase(dropID, barcode, scannedQty, inspectorName) {
+      try {
+        const scansRef = ref(db, "scans");
+        // Push new scan record with timestamp
+        await push(scansRef, {
+          dropID,
+          barcode,
+          scannedQty,
+          inspectedBy: inspectorName || null,
+          timestamp: Date.now(),
+        });
+      } catch (error) {
+        console.error("Error saving scan to Firebase:", error);
+      }
+    }
+
+    // Handle file upload and parse Excel
     uploadForm.addEventListener("submit", (e) => {
       e.preventDefault();
       uploadMessage.classList.add("hidden");
       msgBox.classList.add("hidden");
       msgBox.textContent = "";
-      orderData = {};
+      scannedData = {};
+      inspectedByData = {};
+      orderData = [];
       orderDetails.classList.add("hidden");
-      currentQtyDisplay.classList.add("hidden");
-      displayRetailSKU.textContent = "";
-      displayOrderQty.textContent = "";
-      displayScannedQty.textContent = "";
       dropIdFilterInput.value = "";
       const file = fileInput.files[0];
       if (!file) {
-        alert("Please select a CSV or Excel file.");
+        alert("Please select an Excel file.");
         return;
       }
-      const fileName = file.name.toLowerCase();
-      if (fileName.endsWith(".csv")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const text = event.target.result;
-            const parsedData = parseCSV(text);
-            if (parsedData.length === 0) {
-              uploadMessage.textContent =
-                "Invalid CSV format or no valid data found. Please ensure your file has columns: orderKey, retailSKU, scVariance, qty, dropID.";
-              uploadMessage.classList.remove("hidden");
-              uploadMessage.classList.remove("text-green-600");
-              uploadMessage.classList.add("text-red-600");
-              summaryBody.innerHTML =
-                '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
-              return;
-            }
-            parsedData.forEach((item) => {
-              orderData[item.retailSKU] = {
-                orderKey: item.orderKey,
-                scVariance: item.scVariance,
-                qty: item.qty,
-                dropID: item.dropID,
-              };
-            });
-            uploadMessage.textContent = `Successfully uploaded ${parsedData.length} records. You can now scan item codes one by one.`;
-            uploadMessage.classList.remove("hidden");
-            uploadMessage.classList.remove("text-red-600");
-            uploadMessage.classList.add("text-green-600");
-            uploadForm.reset();
-            resetScans();
-            updateSummaryTable();
-            retailSKUInput.focus();
-            loadScannedDataFromFirebase();
-          } catch {
-            uploadMessage.textContent =
-              "Error parsing CSV file. Please check the file format.";
-            uploadMessage.classList.remove("hidden");
-            uploadMessage.classList.remove("text-green-600");
-            uploadMessage.classList.add("text-red-600");
-            summaryBody.innerHTML =
-              '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
-          }
-        };
-        reader.readAsText(file);
-      } else if (fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) {
-        parseExcel(file, (parsedData) => {
-          if (parsedData.length === 0) {
-            uploadMessage.textContent =
-              "Invalid Excel format or no valid data found. Please ensure your file has columns: orderKey, retailSKU, scVariance, qty, dropID.";
-            uploadMessage.classList.remove("hidden");
-            uploadMessage.classList.remove("text-green-600");
-            uploadMessage.classList.add("text-red-600");
-            summaryBody.innerHTML =
-              '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
-            return;
-          }
-          parsedData.forEach((item) => {
-            orderData[item.retailSKU] = {
-              orderKey: item.orderKey,
-              scVariance: item.scVariance,
-              qty: item.qty,
-              dropID: item.dropID,
-            };
-          });
-          uploadMessage.textContent = `Successfully uploaded ${parsedData.length} records. You can now scan item codes one by one.`;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+        if (jsonData.length === 0) {
+          uploadMessage.textContent =
+            "No data found in the Excel file.";
           uploadMessage.classList.remove("hidden");
-          uploadMessage.classList.remove("text-red-600");
-          uploadMessage.classList.add("text-green-600");
-          uploadForm.reset();
-          resetScans();
-          updateSummaryTable();
-          retailSKUInput.focus();
-          loadScannedDataFromFirebase();
-        });
-      } else {
-        alert("Unsupported file type. Please upload a CSV or Excel file.");
-      }
+          uploadMessage.classList.remove("text-green-600");
+          uploadMessage.classList.add("text-red-600");
+          summaryBody.innerHTML =
+            '<tr><td colspan="7" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+          return;
+        }
+
+        // Validate required columns
+        const requiredCols = ["Order Key", "Retail SKU", "SCVariance", "Qty", "Drop ID"];
+        const missingCols = requiredCols.filter(
+          (col) => !Object.keys(jsonData[0]).some(k => k.trim().toLowerCase() === col.toLowerCase())
+        );
+        if (missingCols.length > 0) {
+          uploadMessage.textContent =
+            `Missing required columns in Excel: ${missingCols.join(", ")}. Please check your file.`;
+          uploadMessage.classList.remove("hidden");
+          uploadMessage.classList.remove("text-green-600");
+          uploadMessage.classList.add("text-red-600");
+          summaryBody.innerHTML =
+            '<tr><td colspan="7" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+          return;
+        }
+
+        // Store all rows as separate items (no aggregation)
+        orderData = jsonData.map(row => ({
+          orderKey: row["Order Key"]?.toString().trim() || "",
+          barcode: row["Retail SKU"]?.toString().trim() || "",
+          scVariance: row["SCVariance"]?.toString().trim() || "",
+          qty: Number(row["Qty"]) || 0,
+          dropID: row["Drop ID"]?.toString().trim() || "",
+        }));
+
+        uploadMessage.textContent = `Successfully uploaded ${orderData.length} records. You can now scan barcodes one by one.`;
+        uploadMessage.classList.remove("hidden");
+        uploadMessage.classList.remove("text-red-600");
+        uploadMessage.classList.add("text-green-600");
+        uploadForm.reset();
+        resetScans();
+        updateSummaryTable();
+        barcodeInput.focus();
+      };
+      reader.readAsArrayBuffer(file);
     });
 
-    function updateCurrentQtyDisplay(retailSKU) {
-      if (!retailSKU || !orderData[retailSKU]) {
-        currentQtyDisplay.classList.add("hidden");
-        displayRetailSKU.textContent = "";
-        displayOrderQty.textContent = "";
-        displayScannedQty.textContent = "";
-        return;
-      }
-      const order = orderData[retailSKU];
-      const qty = order.qty;
-      const scannedQty = scannedData[retailSKU] || 0;
-      displayRetailSKU.textContent = retailSKU;
-      displayOrderQty.textContent = qty;
-      displayScannedQty.textContent = scannedQty;
-      currentQtyDisplay.classList.remove("hidden");
-    }
-
+    // Handle scan form submission - auto add scanned qty = 1 per scan
     scanForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       msgBox.classList.add("hidden");
       msgBox.textContent = "";
 
-      const retailSKU = retailSKUInput.value.trim();
+      const barcode = barcodeInput.value.trim();
       const inspectorName = inspectedByInput.value.trim();
-      const filterDropId = dropIdFilterInput.value.trim().toLowerCase();
 
-      if (!retailSKU) {
-        alert("Please enter or scan an Item Code (Retail SKU).");
+      if (!barcode) {
+        alert("Please enter or scan a barcode.");
         return;
       }
-      if (!orderData[retailSKU]) {
-        alert(`Error: Item Code (Retail SKU) "${retailSKU}" not found in uploaded order data.`);
+
+      // Find all items matching this barcode (could be multiple drop IDs)
+      const matchingItems = orderData.filter(item => item.barcode === barcode);
+      if (matchingItems.length === 0) {
+        alert(`Error: Barcode "${barcode}" not found in uploaded order data.`);
         scanForm.reset();
-        retailSKUInput.focus();
-        updateCurrentQtyDisplay(null);
+        barcodeInput.focus();
         return;
       }
 
-      // Check if filterDropId is set and matches the item's dropID
-      if (filterDropId) {
-        const itemDropID = (orderData[retailSKU].dropID || "").toLowerCase();
-        if (!itemDropID.includes(filterDropId)) {
-          alert(`Error: This item (Retail SKU: "${retailSKU}") is not part of the filtered Drop ID "${filterDropId}".`);
-          scanForm.reset();
-          retailSKUInput.focus();
-          return;
+      // For simplicity, increment scanned qty for all matching items by 1
+      matchingItems.forEach(item => {
+        const uniqueKey = makeUniqueKey(item.dropID, item.barcode);
+        const currentScannedQty = scannedData[uniqueKey] || 0;
+        const newScannedQty = currentScannedQty + 1;
+        scannedData[uniqueKey] = newScannedQty;
+        if (inspectorName) {
+          inspectedByData[uniqueKey] = inspectorName;
         }
-      }
+        // Save scan record to Firebase (optional: you may want to save per item)
+        saveScanToFirebase(item.dropID, item.barcode, newScannedQty, inspectorName);
+      });
 
-      const order = orderData[retailSKU];
-      const qty = order.qty;
-      const currentScannedQty = scannedData[retailSKU] || 0;
-      const newScannedQty = currentScannedQty + 1;
+      // Show message for first matching item (you can customize)
+      const firstItem = matchingItems[0];
+      const uniqueKey = makeUniqueKey(firstItem.dropID, firstItem.barcode);
+      const scannedQty = scannedData[uniqueKey];
+      const orderQty = firstItem.qty;
 
-      scannedData[retailSKU] = newScannedQty;
-      if (inspectorName) {
-        inspectedByData[retailSKU] = inspectorName;
-      }
-
-      await saveScanToFirebase(retailSKU, newScannedQty, inspectorName);
-
-      if (newScannedQty > qty) {
+      if (scannedQty > orderQty) {
         alert(
-          `Excess quantity error for Item Code "${retailSKU}": Scanned quantity (${newScannedQty}) exceeds order quantity (${qty}).`
+          `Excess quantity error for barcode "${barcode}" in Drop ID "${firstItem.dropID}": Scanned quantity (${scannedQty}) exceeds order quantity (${orderQty}).`
         );
         showMessage(
-          `Excess quantity error for Item Code "${retailSKU}": Scanned quantity (${newScannedQty}) exceeds order quantity (${qty}).`,
+          `Excess quantity error for barcode "${barcode}" in Drop ID "${firstItem.dropID}": Scanned quantity (${scannedQty}) exceeds order quantity (${orderQty}).`,
           "error"
         );
-      } else if (newScannedQty === qty) {
+      } else if (scannedQty === orderQty) {
         showMessage(
-          `Item Code "${retailSKU}" fully scanned. Scanned quantity matches order quantity (${qty}).`,
+          `Barcode "${barcode}" in Drop ID "${firstItem.dropID}" fully scanned. Scanned quantity matches order quantity (${orderQty}).`,
           "success"
         );
       } else {
         showMessage(
-          `Item Code "${retailSKU}" scanned. Scanned quantity: ${newScannedQty} / Order quantity: ${qty}.`,
+          `Barcode "${barcode}" in Drop ID "${firstItem.dropID}" scanned. Scanned quantity: ${scannedQty} / Order quantity: ${orderQty}.`,
           "info"
         );
       }
 
       updateSummaryTable();
-      updateCurrentQtyDisplay(retailSKU);
       scanForm.reset();
-      retailSKUInput.focus();
+      barcodeInput.focus();
     });
 
+    // Search orders by order key or barcode and show details
     orderSearchInput.addEventListener("input", () => {
       const query = orderSearchInput.value.trim().toLowerCase();
       if (!query) {
         orderDetails.classList.add("hidden");
         return;
       }
-      const foundEntry = Object.entries(orderData).find(([retailSKU, data]) => {
-        return (
-          retailSKU.toLowerCase().includes(query) ||
-          (data.orderKey && data.orderKey.toLowerCase().includes(query))
-        );
-      });
-      if (!foundEntry) {
+      // Find first matching item by orderKey or barcode
+      const foundItem = orderData.find(item =>
+        (item.orderKey && item.orderKey.toLowerCase().includes(query)) ||
+        (item.barcode && item.barcode.toLowerCase().includes(query))
+      );
+      if (!foundItem) {
         orderDetails.classList.add("hidden");
         return;
       }
-      const [retailSKU, data] = foundEntry;
-      detailRetailSKU.textContent = retailSKU;
-      detailOrderKey.textContent = data.orderKey || "-";
-      detailSCVariance.textContent = data.scVariance !== undefined && data.scVariance !== null ? data.scVariance : "-";
-      detailQty.textContent = data.qty || "-";
-      detailDropID.textContent = data.dropID || "-";
+      const uniqueKey = makeUniqueKey(foundItem.dropID, foundItem.barcode);
+      detailOrderKey.textContent = foundItem.orderKey || "-";
+      detailBarcode.textContent = foundItem.barcode || "-";
+      detailSCVariance.textContent = foundItem.scVariance || "-";
+      detailQty.textContent = foundItem.qty;
+      detailDropID.textContent = foundItem.dropID || "-";
+      detailInspectedBy.textContent = inspectedByData[uniqueKey] || "-";
+      detailScannedQty.textContent = scannedData[uniqueKey] || 0;
       orderDetails.classList.remove("hidden");
     });
 
+    // Filter summary table on Drop ID input
     dropIdFilterInput.addEventListener("input", () => {
       updateSummaryTable();
     });
 
-    window.addEventListener("load", () => {
-      loadScannedDataFromFirebase();
-    });
-
-    exportExcelBtn.addEventListener("click", () => {
-      const exportData = [];
-      const retailSKUs = Object.keys(orderData);
-      if (retailSKUs.length === 0) {
-        alert("No order data to export.");
-        return;
-      }
-      retailSKUs.forEach(retailSKU => {
-        const order = orderData[retailSKU];
-        const scannedQty = scannedData[retailSKU] || 0;
-        exportData.push({
-          "Retail SKU (Item Code)": retailSKU,
-          "Order Key": order.orderKey,
-          "SCVariance": order.scVariance,
-          "Qty": order.qty,
-          "Scanned Qty": scannedQty,
-          "Drop ID": order.dropID,
-        });
-      });
-      if (exportData.length === 0) {
-        alert("No data available to export.");
-        return;
-      }
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Scanned Data");
-      XLSX.writeFile(workbook, "scanned_data_export.xlsx");
-    });
-
+    // Initialize summary table with no data message
     summaryBody.innerHTML =
-      '<tr><td colspan="6" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
+      '<tr><td colspan="7" class="text-center py-4 text-gray-500">No order data uploaded.</td></tr>';
   </script>
 </body>
 </html>
